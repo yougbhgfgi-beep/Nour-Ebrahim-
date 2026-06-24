@@ -142,7 +142,7 @@ export function EnvelopeLetter({ onDismiss }: EnvelopeLetterProps) {
                 𝑯𝒂𝒃𝒊𝒃𝒚 💕
               </h2>
 
-              <div className="text-right font-handwritten text-base md:text-lg leading-relaxed min-h-[200px] max-w-full overflow-hidden" style={{ fontFeatureSettings: "'kern' 1" }}>
+              <div className="text-right font-handwritten text-sm md:text-base leading-relaxed min-h-[200px] max-w-full overflow-hidden" style={{ fontFeatureSettings: "'kern' 1" }}>
                 <p className="whitespace-pre-line break-words" dir="rtl">{typedText}</p>
                 {!typingDone && (
                   <span className="inline-block w-[2px] h-4 bg-primary animate-pulse mr-1 align-middle" />
