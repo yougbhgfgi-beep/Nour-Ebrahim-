@@ -1,25 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Heart, RotateCcw } from "lucide-react"
+import { Heart, RotateCcw, Star } from "lucide-react"
 
-const emojiPairs = ["💕", "💖", "💗", "🌹", "💫", "✨", "🥰", "💝"]
-
-interface Card {
+interface Point {
+  x: number
+  y: number
   id: number
-  emoji: string
-  isFlipped: boolean
-  isMatched: boolean
 }
 
-const createCards = (): Card[] => {
-  const cards: Card[] = []
-  emojiPairs.forEach((emoji, i) => {
-    cards.push({ id: i * 2, emoji, isFlipped: false, isMatched: false })
-    cards.push({ id: i * 2 + 1, emoji, isFlipped: false, isMatched: false })
-  })
-  return cards.sort(() => Math.random() - 0.5)
+const NUM_STARS = 8
+
+const generateStars = (): Point[] => {
+  const points: Point[] = []
+  const cols = 4
+  for (let i = 0; i < NUM_STARS; i++) {
+    const col = i % cols
+    const row = Math.floor(i / cols)
+    const x = 10 + col * 25 + Math.random() * 10
+    const y = 10 + row * 35 + Math.random() * 10
+    points.push({ x, y, id: i + 1 })
+  }
+  return points.sort(() => Math.random() - 0.5).map((p, i) => ({ ...p, id: i + 1 }))
 }
 
 const winMessages = [
@@ -30,96 +33,84 @@ const winMessages = [
 ]
 
 export function LoveGame() {
-  const [cards, setCards] = useState<Card[]>(createCards)
-  const [flipped, setFlipped] = useState<number[]>([])
-  const [moves, setMoves] = useState(0)
+  const [stars] = useState<Point[]>(generateStars)
+  const [clicked, setClicked] = useState<number[]>([])
   const [won, setWon] = useState(false)
-  const [isChecking, setIsChecking] = useState(false)
   const [msgIndex, setMsgIndex] = useState(0)
 
-  const handleFlip = (id: number) => {
-    if (isChecking || flipped.includes(id) || cards.find((c) => c.id === id)?.isMatched) return
-
-    const newFlipped = [...flipped, id]
-    setFlipped(newFlipped)
-    setMoves((m) => m + 1)
-
-    if (newFlipped.length === 2) {
-      setIsChecking(true)
-      const [first, second] = newFlipped
-      const card1 = cards.find((c) => c.id === first)!
-      const card2 = cards.find((c) => c.id === second)!
-
-      if (card1.emoji === card2.emoji) {
-        setCards((prev) => prev.map((c) => (c.id === first || c.id === second ? { ...c, isMatched: true } : c)))
-        setFlipped([])
-        setIsChecking(false)
-
-        const remaining = cards.filter((c) => c.id !== first && c.id !== second && !c.isMatched)
-        if (remaining.length === 0) {
-          setWon(true)
-          setMsgIndex(Math.floor(Math.random() * winMessages.length))
-        }
-      } else {
-        setTimeout(() => {
-          setFlipped([])
-          setIsChecking(false)
-        }, 800)
-      }
+  const handleClick = (id: number) => {
+    if (won) return
+    const next = clicked.length + 1
+    if (id !== next) return
+    const newClicked = [...clicked, id]
+    setClicked(newClicked)
+    if (newClicked.length === NUM_STARS) {
+      setWon(true)
+      setMsgIndex(Math.floor(Math.random() * winMessages.length))
     }
   }
 
   const reset = () => {
-    setCards(createCards())
-    setFlipped([])
-    setMoves(0)
+    setClicked([])
     setWon(false)
-    setIsChecking(false)
+  }
+
+  const sorted = useMemo(() => [...stars].sort((a, b) => a.id - b.id), [stars])
+
+  const getStarPos = (id: number) => {
+    const star = stars.find((s) => s.id === id)
+    return star ? { x: `${star.x}%`, y: `${star.y}%` } : { x: "50%", y: "50%" }
   }
 
   return (
     <section className="py-8 md:py-12 container text-center">
       <h2 className="font-display text-3xl md:text-5xl text-gradient mb-2">
-        لعبة الذاكرة 🧠
+        لعبة توصيل النجوم ⭐
       </h2>
-      <p className="font-body text-muted-foreground mb-4">حركات: {moves}</p>
+      <p className="font-body text-muted-foreground mb-4">
+        اضغط على النجوم بالترتيب من 1 إلى {NUM_STARS}
+      </p>
 
-      <div className="grid grid-cols-4 gap-3 max-w-sm mx-auto">
-        {cards.map((card) => {
-          const isFlipped = flipped.includes(card.id) || card.isMatched
+      <div className="relative w-full max-w-sm mx-auto aspect-square glass-dark border border-primary/20 rounded-3xl p-4 glow-rose">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ padding: "4%" }}>
+          {clicked.slice(0, -1).map((id, i) => {
+            const from = stars.find((s) => s.id === id)
+            const to = stars.find((s) => s.id === clicked[i + 1])
+            if (!from || !to) return null
+            return (
+              <line
+                key={`line-${id}`}
+                x1={`${from.x}%`}
+                y1={`${from.y}%`}
+                x2={`${to.x}%`}
+                y2={`${to.y}%`}
+                stroke="oklch(0.85 0.15 85 / 0.6)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="drop-shadow-[0_0_4px_oklch(0.85_0.15_85/_0.4)]"
+              />
+            )
+          })}
+        </svg>
 
+        {stars.map((star) => {
+          const isClicked = clicked.includes(star.id)
           return (
             <motion.button
-              key={card.id}
-              onClick={() => handleFlip(card.id)}
-              className={`aspect-square rounded-2xl text-3xl flex items-center justify-center transition-all duration-300 ${isFlipped ? "glass glow-rose" : "bg-muted hover:bg-muted/80"}`}
-              whileTap={{ scale: 0.95 }}
-              layout
+              key={star.id}
+              onClick={() => handleClick(star.id)}
+              className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full transition-all duration-300"
+              style={{ left: `${star.x}%`, top: `${star.y}%` }}
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+              disabled={isClicked}
             >
-              <AnimatePresence mode="wait">
-                {isFlipped ? (
-                  <motion.span
-                    key="front"
-                    initial={{ scale: 0, rotateY: 180 }}
-                    animate={{ scale: 1, rotateY: 0 }}
-                    exit={{ scale: 0, rotateY: -180 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {card.emoji}
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="back"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-muted-foreground"
-                  >
-                    ❓
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <div className={`relative flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full transition-all duration-300 ${isClicked ? "bg-primary/30 border-2 border-primary shadow-[0_0_15px_oklch(0.85_0.15_85/_0.5)]" : "bg-muted/80 border border-primary/20 hover:border-primary/40"}`}>
+                <Star className={`w-5 h-5 md:w-6 md:h-6 ${isClicked ? "text-primary fill-primary" : "text-muted-foreground"}`} />
+                <span className={`absolute text-xs md:text-sm font-bold ${isClicked ? "text-foreground" : "text-muted-foreground"}`}>
+                  {star.id}
+                </span>
+              </div>
             </motion.button>
           )
         })}
