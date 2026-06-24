@@ -122,7 +122,7 @@ export function EnvelopeLetter({ onDismiss }: EnvelopeLetterProps) {
             transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
             className="relative z-10 w-full max-w-md mx-auto px-4"
           >
-            <div className="glass-dark border border-primary/20 rounded-3xl p-8 md:p-12 glow-rose">
+            <div className="glass-dark border border-primary/20 rounded-3xl p-6 md:p-12 glow-rose max-h-[85vh] overflow-y-auto">
               <button
                 onClick={() => setAutoDismiss(true)}
                 className="absolute top-4 left-4 text-muted-foreground hover:text-foreground transition-colors"
