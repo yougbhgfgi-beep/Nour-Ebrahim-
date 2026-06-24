@@ -122,7 +122,7 @@ export function EnvelopeLetter({ onDismiss }: EnvelopeLetterProps) {
             transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
             className="relative z-10 w-full max-w-md mx-auto px-4"
           >
-            <div className="glass-dark border border-primary/20 rounded-3xl p-6 md:p-12 glow-rose max-h-[85vh] overflow-y-auto">
+            <div className="glass-dark border border-primary/20 rounded-3xl p-6 md:p-12 glow-rose flex flex-col max-h-[90vh]">
               <button
                 onClick={() => setAutoDismiss(true)}
                 className="absolute top-4 left-4 text-muted-foreground hover:text-foreground transition-colors"
@@ -133,16 +133,16 @@ export function EnvelopeLetter({ onDismiss }: EnvelopeLetterProps) {
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="mb-6 text-center"
+                className="mb-4 text-center flex-shrink-0"
               >
                 <Heart className="w-10 h-10 mx-auto text-primary" fill="var(--color-primary)" style={{ opacity: 0.3 }} />
               </motion.div>
 
-              <h2 className="font-display text-3xl md:text-4xl text-gradient text-center mb-6">
+              <h2 className="font-display text-3xl md:text-4xl text-gradient text-center mb-4 flex-shrink-0">
                 𝑯𝒂𝒃𝒊𝒃𝒚 💕
               </h2>
 
-              <div className="text-right font-handwritten text-sm md:text-base leading-relaxed min-h-[200px] max-w-full overflow-hidden" style={{ fontFeatureSettings: "'kern' 1" }}>
+              <div className="text-right font-handwritten text-sm md:text-base leading-relaxed flex-1 overflow-y-auto min-h-0 max-w-full" style={{ fontFeatureSettings: "'kern' 1" }}>
                 <p className="whitespace-pre-line break-words" dir="rtl">{typedText}</p>
                 {!typingDone && (
                   <span className="inline-block w-[2px] h-4 bg-primary animate-pulse mr-1 align-middle" />
@@ -150,7 +150,7 @@ export function EnvelopeLetter({ onDismiss }: EnvelopeLetterProps) {
               </div>
 
               {typingDone && (
-                <div className="mt-8 text-center">
+                <div className="mt-4 pt-2 text-center flex-shrink-0">
                   <motion.button
                     onClick={() => setAutoDismiss(true)}
                     whileHover={{ scale: 1.02 }}
